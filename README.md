@@ -1,0 +1,2 @@
+# map.yandex
+map yandex
