@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        button {
+            margin: 10px;
+        }
+        #terminal li:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        #countryTerminal {
+            margin: 10px;
+        }
+        /* Делаем карту чёрно-белой */
+        #map {
+            filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale"); /* Firefox 3.5+ */
+            -webkit-filter: grayscale(50%); /* Chrome 19+ & Safari 6+ */
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script type="text/javascript">
+        /* const myMap; */
+        const placemarkCollections = {};
+        const placemarkList = {};
+
+// Список городов и магазинов в них
+const terminalList = [
+{
+    'countryName': 'Россия',
+    'terminals': [
+    {
+        'coordinates': [55.701677873469, 38.57358050756649],
+        'name': 'Терминал 1',
+        'iconImage': 'https://techflourish.com/images/aerial-view-of-car-clipart-3.png',
+        'iconRotate': '50',
+        'vin': 'O799НН67RUS'
+    },
+    {
+        'coordinates': [55.72532368326033, 37.948675112058876],
+        'name': 'Терминал 2',
+        'iconImage': 'https://sun9-38.userapi.com/c844618/v844618874/1119bd/kRoIo-NnPYM.jpg',
+        'iconRotate': '30',
+        'vin': 'O799НН67RUS'
+    },
+    {
+        'coordinates': [55.82532368326033, 37.748675112058876],
+        'name': 'Терминал 3',
+        'iconImage': 'https://sun9-38.userapi.com/c844618/v844618874/1119bd/kRoIo-NnPYM.jpg',
+        'iconRotate': '90',
+        'vin': 'O799НН67RUS'
+    },
+    {
+        'coordinates': [55.92532368326033, 37.748675112058876],
+        'name': 'Терминал 4',
+        'iconImage': 'https://sun9-38.userapi.com/c844618/v844618874/1119bd/kRoIo-NnPYM.jpg',
+        'iconRotate': '90',
+        'vin': 'O799НН67RUS'
+    },
+    {
+        'coordinates': [55.02532368326033, 37.748675112058876],
+        'name': 'Терминал 5',
+        'iconImage': 'https://sun9-38.userapi.com/c844618/v844618874/1119bd/kRoIo-NnPYM.jpg',
+        'iconRotate': '90',
+        'vin': 'O799НН67RUS'
+    },
+    {
+        'coordinates': [55.72532368326033, 37.748675112058876],
+        'name': 'Терминал 6',
+        'iconImage': 'https://sun9-38.userapi.com/c844618/v844618874/1119bd/kRoIo-NnPYM.jpg',
+        'iconRotate': '90',
+        'vin': 'O799НН67RUS'
+    },
+    {
+        'coordinates': [55.701677873469, 37.57358050756649],
+        'name': 'Терминал 7',
+        'iconImage': 'https://techflourish.com/images/aerial-view-of-car-clipart-3.png',
+        'iconRotate': '90',
+        'vin': 'O799НН67RUS'
+    }
+    ]
+}
+];
+ymaps.ready(init);
+
+function init() {
+
+// Создаем карту
+myMap = new ymaps.Map("map", {
+    center: [56, 37],
+    zoom: 8,
+    controls: [
+    'zoomControl'
+    ],
+    zoomMargin: [20]
+});
+
+MyIconContentLayout = ymaps.templateLayoutFactory.createClass(
+    '<div style="color: #FFFFFF; font-weight: bold;">$[properties.iconContent]</div>'
+    );
+
+var clusterer = new ymaps.Clusterer({
+// preset: 'islands#invertedPinkClusterIcons',
+// Зададим массив, описывающий иконки кластеров разного размера.
+clusterIcons: [
+{
+    href: 'https://icon2.kisspng.com/20171221/ckq/cars-3-cruz-ramirez-transparent-image-5a3b8563302443.5525124315138502111972.jpg',
+    size: [40, 40],
+    offset: [-20, -20],
+    shape: {
+        type: 'Circle',
+        coordinates: [0, 0],
+        radius: 30
+    }
+},
+{
+    href: 'https://icon2.kisspng.com/20171221/ckq/cars-3-cruz-ramirez-transparent-image-5a3b8563302443.5525124315138502111972.jpg',
+    size: [60, 60],
+    offset: [-30, -30],
+    shape: {
+        type: 'Circle',
+        coordinates: [0, 0],
+        radius: 30
+    }
+}],
+
+// Эта опция отвечает за размеры кластеров.
+// В данном случае для кластеров, содержащих до
+ 
+// будет показываться маленькая иконка. Для остальных - большая.
+clusterNumbers: [10],
+// clusterIconContentLayout: null
+
+// preset: 'islands#invertedVioletClusterIcons',
+
+});
+
+for (var i = 0; i < terminalList.length; i++) {
+// Создаём коллекцию меток
+// var countryCollection = new ymaps.GeoObjectCollection();
+
+for (var c = 0; c < terminalList[i].terminals.length; c++) {
+
+    var terminalInfo = terminalList[i].terminals[c];
+
+    var terminalPlacemark = new ymaps.Placemark(
+        terminalInfo.coordinates,
+        {
+// Зададим содержимое всплывающей подсказки.
+hintContent: terminalInfo.name,
+
+// Зададим содержимое заголовка балуна.
+balloonContentHeader: terminalInfo.name,
+// Зададим содержимое основной части балуна.
+balloonContentBody: '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Sea.." height="76" width="200"> <br/> ' +
+'<b>Гос. номер</b><br>' + terminalInfo.vin + '<br/>',
+// Зададим содержимое нижней части балуна.
+balloonContentFooter: 'Информация предоставлена:<br/>OOO "TwinsTechnologies"'
+},
+{
+    iconLayout: ymaps.templateLayoutFactory.createClass([
+        '<div style="transform:rotate({{options.rotate}}deg);">',
+        '{% include "default#image" %}',
+        '</div>'
+        ].join('')),
+    iconImageHref: terminalInfo.iconImage,
+    iconImageSize: [22, 42],
+    iconRotate: terminalInfo.iconRotate,
+    iconImageOffset: [-3, -42],
+//активная зона иконки
+iconShape: {
+    type: 'Circle',
+    coordinates: [0, 0],
+    radius: 30
+}
+}
+);
+
+// console.log(terminalInfo.coordinates);
+// console.log(terminalPlacemark);
+
+// terminalPlacemark = [];
+
+// for (var i = 0, len = terminalInfo.coordinates.length; i < len; i++) {
+// terminalPlacemark[i] = new ymaps.Placemark(terminalInfo.coordinates);
+// }
+
+if (!placemarkList[i]) placemarkList[i] = {};
+placemarkList[i][c] = terminalPlacemark;
+
+clusterer.add(terminalPlacemark);
+
+// Добавляем метку в коллекцию
+// countryCollection.add(terminalPlacemark);
+
+console.log(terminalInfo.coordinates);
+
+}
+
+// placemarkCollections[i] = countryCollection;
+// Добавляем кластер на карту
+myMap.geoObjects.add(clusterer);
+
+console.log(terminalInfo.coordinates);
+console.log(terminalPlacemark);
+
+}
+
+function scale() {
+
+// Масштабируем и выравниваем карту так, чтобы были видны метки для страны
+myMap.setBounds(clusterer.getBounds(), {checkZoomRange:true}).then(function(){
+if(myMap.getZoom() > 15) myMap.setZoom(15); // Если значение zoom превышает 15, то устанавливаем 15.
+});
+
+}
+
+function initTerminal() {
+// var cityId = $('select#cities').val();
+
+$('#terminal').html('');
+for (var c = 0; c < terminalList[0].terminals.length; c++) {
+    $('#terminal').append('<li value="' + c + '">' + terminalList[0].terminals[c].name + '</li>');
+}
+
+};
+
+scale();
+
+initTerminal();
+
+// $('select#cities').trigger('change');
+
+firstButton = new ymaps.control.Button("Масштаб");
+
+myMap.controls.add(firstButton, {float: 'right'});
+
+firstButton.events.add('click', scale);
+
+// Клик на терминал
+$('#terminal li').on('click', function() {
+    var terminalId = $(this).val();
+    myMap.setCenter(terminalList[0].terminals[terminalId].coordinates, 10, {
+        checkZoomRange: true
+    });
+});
+}
+
+</script>
+</head>
+<body>
+    <div id="countryTerminal">
+        <ul id="terminal"></ul>
+    </div>
+    <div id="map" style="width: 100%; height: 400px"></div>
+</body>
+</html>
